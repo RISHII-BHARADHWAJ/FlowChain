@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block title %}Products{% endblock %}
+{% block nav_products %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/">Home</a></li>
+<li class="breadcrumb-item active">Products</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+  <div class="page-header-left">
+    <h1>Product Management</h1>
+    <p>{{ total_count }} products across {{ category_count }} categories</p>
+  </div>
+  <div class="page-header-actions">
+    <button class="btn-scm-secondary" onclick="exportProducts()">
+      <i class="bi bi-download"></i> Export
+    </button>
+    <button class="btn-scm-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+      <i class="bi bi-upload"></i> Import CSV
+    </button>
+    <a href="/products/new/" class="btn-scm-primary">
+      <i class="bi bi-plus-lg"></i> Add Product
+    </a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar animate-fade-in">
+  <div style="flex:1;min-width:220px;position:relative;">
+    <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);"></i>
+    <input type="text" id="searchInput" class="scm-form-control" style="padding-left:36px;"
+      placeholder="Search by name, SKU, barcode..." value="{{ request.GET.search|default:'' }}"
+      oninput="debounceSearch(this.value)" />
+  </div>
+  <select class="scm-form-control" style="width:auto;" onchange="filterChange('category', this.value)">
+    <option value="">All Categories</option>
+    {% for cat in categories %}
+    <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>
+      {{ cat.name }}
+    </option>
+    {% endfor %}
+  </select>
+  <select class="scm-form-control" style="width:auto;" onchange="filterChange('status', this.value)">
+    <option value="">All Status</option>
+    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+    <option value="discontinued" {% if request.GET.status == 'discontinued' %}selected{% endif %}>Discontinued</option>
+  </select>
+  <select class="scm-form-control" style="width:auto;" onchange="filterChange('ordering', this.value)">
+    <option value="name">Sort: Name A-Z</option>
+    <option value="-created_at">Sort: Newest</option>
+    <option value="selling_price">Sort: Price Low</option>
+    <option value="-selling_price">Sort: Price High</option>
+  </select>
+  {% if request.GET.search or request.GET.category or request.GET.status %}
+  <a href="/products/" class="btn-scm-secondary">
+    <i class="bi bi-x"></i> Clear
+  </a>
+  {% endif %}
+</div>
+
+<!-- Table -->
+<div class="scm-table-wrapper animate-fade-in">
+  <table class="scm-table" id="productsTable">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="selectAll" class="form-check-input" /></th>
+        <th>Product</th>
+        <th>SKU</th>
+        <th>Category</th>
+        <th>Cost Price</th>
+        <th>Selling Price</th>
+        <th>Margin</th>
+        <th>Stock</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td><input type="checkbox" class="form-check-input row-check" value="{{ product.id }}" /></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />
+            {% else %}
+            <div style="width:36px;height:36px;border-radius:6px;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-box-seam text-muted"></i>
+            </div>
+            {% endif %}
+            <div>
+              <div class="fw-500" style="font-size:13.5px;">{{ product.name|truncatechars:35 }}</div>
+              <div class="text-muted" style="font-size:11px;">{{ product.brand.name|default:"—" }}</div>
+            </div>
+          </div>
+        </td>
+        <td><code class="font-mono text-accent-blue" style="font-size:11px;">{{ product.sku }}</code></td>
+        <td>{{ product.category.name }}</td>
+        <td>{{ CURRENCY_SYMBOL }}{{ product.cost_price|floatformat:2 }}</td>
+        <td class="fw-600">{{ CURRENCY_SYMBOL }}{{ product.selling_price|floatformat:2 }}</td>
+        <td>
+          <span style="color:{% if product.profit_margin > 20 %}var(--accent-green){% elif product.profit_margin > 0 %}var(--accent-orange){% else %}var(--accent-red){% endif %};">
+            {{ product.profit_margin|floatformat:1 }}%
+          </span>
+        </td>
+        <td>
+          {% with stock=product.stock_levels.first %}
+          {% if stock %}
+            {% if stock.is_out_of_stock %}
+            <span class="text-accent-red fw-600">0</span>
+            {% elif stock.is_low_stock %}
+            <span class="text-accent-orange fw-600">{{ stock.quantity_on_hand|floatformat:0 }}</span>
+            {% else %}
+            <span class="text-accent-green fw-600">{{ stock.quantity_on_hand|floatformat:0 }}</span>
+            {% endif %}
+          {% else %}
+          <span class="text-muted">—</span>
+          {% endif %}
+          {% endwith %}
+        </td>
+        <td><span class="badge-status badge-{{ product.status }}">{{ product.get_status_display }}</span></td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            <a href="/products/{{ product.id }}/" class="action-btn" title="View" style="width:30px;height:30px;">
+              <i class="bi bi-eye"></i>
+            </a>
+            <a href="/products/{{ product.id }}/edit/" class="action-btn" title="Edit" style="width:30px;height:30px;">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button class="action-btn" title="Generate Barcode" style="width:30px;height:30px;"
+              onclick="generateBarcode('{{ product.id }}')">
+              <i class="bi bi-upc-scan"></i>
+            </button>
+            <button class="action-btn text-danger" title="Delete" style="width:30px;height:30px;border-color:rgba(248,81,73,.3);"
+              onclick="confirmDelete('{{ product.id }}', '{{ product.name|escapejs }}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="10" class="text-center py-5 text-muted">
+          <i class="bi bi-box-seam" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3;"></i>
+          No products found. <a href="/products/new/" class="text-accent-blue">Add your first product</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  {% if products.has_other_pages %}
+  <div style="padding:16px 20px;border-top:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
+    <span class="text-muted" style="font-size:12px;">
+      Showing {{ products.start_index }}–{{ products.end_index }} of {{ products.paginator.count }} products
+    </span>
+    <nav>
+      <ul class="pagination pagination-sm mb-0" style="gap:4px;">
+        {% if products.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ products.previous_page_number }}&{{ request.GET.urlencode }}"
+            style="background:var(--bg-hover);border-color:var(--border-color);color:var(--text-primary);border-radius:6px;">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+        {% endif %}
+        {% for num in products.paginator.page_range %}
+        {% if products.number == num %}
+        <li class="page-item active">
+          <span class="page-link" style="background:var(--accent-blue);border-color:var(--accent-blue);border-radius:6px;">{{ num }}</span>
+        </li>
+        {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}"
+            style="background:var(--bg-hover);border-color:var(--border-color);color:var(--text-primary);border-radius:6px;">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        {% if products.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ products.next_page_number }}&{{ request.GET.urlencode }}"
+            style="background:var(--bg-hover);border-color:var(--border-color);color:var(--text-primary);border-radius:6px;">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Import Products</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3" style="font-size:13px;">
+          Upload a CSV file to bulk import products. <a href="/products/template/" class="text-accent-blue">Download template</a>
+        </p>
+        <form id="importForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <div style="border:2px dashed var(--border-color);border-radius:8px;padding:32px;text-align:center;cursor:pointer;"
+              onclick="document.getElementById('csvFile').click();" id="dropZone">
+              <i class="bi bi-file-earmark-spreadsheet" style="font-size:32px;color:var(--accent-blue);display:block;margin-bottom:8px;"></i>
+              <div style="font-size:13px;font-weight:500;">Drop CSV file here or click to browse</div>
+              <div class="text-muted" style="font-size:11px;margin-top:4px;" id="fileName">No file selected</div>
+            </div>
+            <input type="file" id="csvFile" accept=".csv" class="d-none"
+              onchange="document.getElementById('fileName').textContent = this.files[0]?.name || 'No file selected'" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-scm-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn-scm-primary" onclick="submitImport()">
+          <i class="bi bi-upload"></i> Import
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let searchTimer;
+function debounceSearch(val) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => filterChange('search', val), 400);
+}
+
+function filterChange(key, val) {
+  const url = new URL(window.location);
+  if (val) url.searchParams.set(key, val);
+  else url.searchParams.delete(key);
+  url.searchParams.delete('page');
+  window.location = url.toString();
+}
+
+function exportProducts() {
+  window.location = '/api/v1/products/export/';
+}
+
+function generateBarcode(id) {
+  fetch(`/api/v1/products/${id}/generate-barcode/`, {
+    method: 'POST', headers: { 'X-CSRFToken': window.SCM.csrfToken }
+  }).then(r => r.json()).then(d => {
+    if (d.barcode_url) window.open(d.barcode_url, '_blank');
+  });
+}
+
+function confirmDelete(id, name) {
+  if (confirm(`Delete "${name}"? This cannot be undone.`)) {
+    fetch(`/api/v1/products/${id}/`, {
+      method: 'DELETE', headers: { 'X-CSRFToken': window.SCM.csrfToken }
+    }).then(() => location.reload());
+  }
+}
+
+// Select all checkbox
+document.getElementById('selectAll')?.addEventListener('change', function() {
+  document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+});
+
+function submitImport() {
+  const file = document.getElementById('csvFile').files[0];
+  if (!file) { alert('Please select a CSV file.'); return; }
+  const form = new FormData();
+  form.append('file', file);
+  fetch('/api/v1/products/bulk-import/', {
+    method: 'POST', body: form, headers: { 'X-CSRFToken': window.SCM.csrfToken }
+  }).then(r => r.json()).then(d => {
+    bootstrap.Modal.getInstance(document.getElementById('importModal')).hide();
+    alert(`Import started! Task ID: ${d.task_id}`);
+  });
+}
+</script>
+{% endblock %}

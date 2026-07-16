@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block nav_products %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+<li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">Products</a></li>
+<li class="breadcrumb-item active">{% if product %}Edit{% else %}New{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0" style="font-weight:700;">{{ title }}</h1>
+    <p class="text-muted mb-0">{% if product %}Update product details and stock policies.{% else %}Define a new catalog item with pricing and compliance information.{% endif %}</p>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="row g-4">
+  {% csrf_token %}
+  
+  <div class="col-lg-8">
+    <!-- General Info Card -->
+    <div class="scm-card p-4 mb-4">
+      <h3 class="h5 mb-4" style="font-weight:600;"><i class="bi bi-info-circle me-2" style="color:var(--accent-blue);"></i>General Information</h3>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-muted small fw-semibold">SKU *</label>
+          <input type="text" name="sku" class="scm-form-control" value="{{ form.sku.value|default:'' }}" required>
+          {% if form.sku.errors %}<div class="text-danger small">{{ form.sku.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-muted small fw-semibold">Barcode</label>
+          <input type="text" name="barcode" class="scm-form-control" value="{{ form.barcode.value|default:'' }}">
+          {% if form.barcode.errors %}<div class="text-danger small">{{ form.barcode.errors }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label text-muted small fw-semibold">Product Name *</label>
+          <input type="text" name="name" class="scm-form-control" value="{{ form.name.value|default:'' }}" required>
+          {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label text-muted small fw-semibold">Short Description</label>
+          <input type="text" name="short_description" class="scm-form-control" value="{{ form.short_description.value|default:'' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label text-muted small fw-semibold">Description</label>
+          <textarea name="description" class="scm-form-control" rows="4">{{ form.description.value|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing & Valuation Card -->
+    <div class="scm-card p-4 mb-4">
+      <h3 class="h5 mb-4" style="font-weight:600;"><i class="bi bi-currency-dollar me-2" style="color:var(--accent-green);"></i>Pricing & Valuation</h3>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label text-muted small fw-semibold">Cost Price (₹) *</label>
+          <input type="number" step="0.01" name="cost_price" class="scm-form-control" value="{{ form.cost_price.value|default:'0' }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-muted small fw-semibold">Selling Price (₹) *</label>
+          <input type="number" step="0.01" name="selling_price" class="scm-form-control" value="{{ form.selling_price.value|default:'0' }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-muted small fw-semibold">MRP (₹) *</label>
+          <input type="number" step="0.01" name="mrp" class="scm-form-control" value="{{ form.mrp.value|default:'0' }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-muted small fw-semibold">HSN Code</label>
+          <input type="text" name="hsn_code" class="scm-form-control" value="{{ form.hsn_code.value|default:'' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-muted small fw-semibold">Tax Rate (%) *</label>
+          <input type="number" step="0.01" name="tax_rate" class="scm-form-control" value="{{ form.tax_rate.value|default:'18.00' }}" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Policies & Thresholds -->
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-4" style="font-weight:600;"><i class="bi bi-shield-check me-2" style="color:var(--accent-orange);"></i>Stock Policies & Thresholds</h3>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label text-muted small fw-semibold">Minimum Stock</label>
+          <input type="number" name="minimum_stock" class="scm-form-control" value="{{ form.minimum_stock.value|default:'10' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-muted small fw-semibold">Maximum Stock</label>
+          <input type="number" name="maximum_stock" class="scm-form-control" value="{{ form.maximum_stock.value|default:'1000' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-muted small fw-semibold">Reorder Point</label>
+          <input type="number" name="reorder_point" class="scm-form-control" value="{{ form.reorder_point.value|default:'20' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <!-- Classification & Layout -->
+    <div class="scm-card p-4 mb-4">
+      <h3 class="h5 mb-4" style="font-weight:600;">Classification</h3>
+      <div class="mb-3">
+        <label class="form-label text-muted small fw-semibold">Category *</label>
+        <select name="category" class="scm-form-control" required>
+          <option value="">Choose Category</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}" {% if form.category.value == c.id or form.category.value|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label text-muted small fw-semibold">Brand</label>
+        <select name="brand" class="scm-form-control">
+          <option value="">Choose Brand</option>
+          {% for b in brands %}
+          <option value="{{ b.id }}" {% if form.brand.value == b.id or form.brand.value|stringformat:"s" == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label text-muted small fw-semibold">Unit of Measurement *</label>
+        <select name="unit" class="scm-form-control" required>
+          <option value="">Choose Unit</option>
+          {% for u in units %}
+          <option value="{{ u.id }}" {% if form.unit.value == u.id or form.unit.value|stringformat:"s" == u.id|stringformat:"s" %}selected{% endif %}>{{ u.name }} ({{ u.abbreviation }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Product Image -->
+    <div class="scm-card p-4 mb-4">
+      <h3 class="h5 mb-4" style="font-weight:600;">Product Image</h3>
+      <div class="mb-3">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" class="img-fluid rounded mb-3 border" style="max-height:160px;background:#0d1117;" alt="">
+        {% endif %}
+        <input type="file" name="image" class="scm-form-control">
+      </div>
+    </div>
+
+    <!-- Status & Publishing -->
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-4" style="font-weight:600;">Publishing</h3>
+      <div class="mb-3">
+        <label class="form-label text-muted small fw-semibold">Status *</label>
+        <select name="status" class="scm-form-control" required>
+          <option value="active" {% if form.status.value == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if form.status.value == 'inactive' %}selected{% endif %}>Inactive</option>
+          <option value="draft" {% if form.status.value == 'draft' %}selected{% endif %}>Draft</option>
+        </select>
+      </div>
+      <div class="form-check form-switch mb-2 pt-2">
+        <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if form.is_active.value or form.is_active.value is None %}checked{% endif %}>
+        <label class="form-check-label text-muted small fw-semibold" for="isActive">Is Active</label>
+      </div>
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" name="is_purchasable" id="isPurchasable" {% if form.is_purchasable.value or form.is_purchasable.value is None %}checked{% endif %}>
+        <label class="form-check-label text-muted small fw-semibold" for="isPurchasable">Is Purchasable</label>
+      </div>
+      <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox" name="is_sellable" id="isSellable" {% if form.is_sellable.value or form.is_sellable.value is None %}checked{% endif %}>
+        <label class="form-check-label text-muted small fw-semibold" for="isSellable">Is Sellable</label>
+      </div>
+
+      <button type="submit" class="btn-scm-primary w-100 py-2.5 mb-2">
+        <i class="bi bi-cloud-arrow-up me-2"></i> Save Product
+      </button>
+      <a href="{% url 'products:product_list' %}" class="btn-scm-secondary w-100 text-center py-2.5">
+        Cancel
+      </a>
+    </div>
+  </div>
+</form>
+{% endblock %}
