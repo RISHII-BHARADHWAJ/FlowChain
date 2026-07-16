@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ user.theme|default:'dark' }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{% block meta_description %}FlowChain - Enterprise Supply Chain Management Platform{% endblock %}" />
+  <title>{% block title %}FlowChain{% endblock %} | {{ COMPANY_NAME }}</title>
+  <meta name="theme-color" content="#0f1117" />
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+  <!-- ApexCharts -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.53.0/dist/apexcharts.css" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/scm-theme.css" />
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="scm-body">
+
+  {% if user.is_authenticated %}
+  <!-- ====== SIDEBAR ====== -->
+  <nav id="sidebar" class="scm-sidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <i class="bi bi-boxes"></i>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">FlowChain</span>
+        <span class="brand-sub">SCM Platform</span>
+      </div>
+      <button class="sidebar-toggle-btn" id="sidebarToggle">
+        <i class="bi bi-layout-sidebar"></i>
+      </button>
+    </div>
+
+    <!-- Search in sidebar -->
+    <div class="sidebar-search">
+      <div class="search-wrapper">
+        <i class="bi bi-search"></i>
+        <input type="text" class="sidebar-search-input" placeholder="Search..." id="globalSearch" />
+        <kbd>⌘K</kbd>
+      </div>
+    </div>
+
+    <!-- Nav Items -->
+    <div class="sidebar-menu" id="sidebarMenu">
+      <div class="menu-section">
+        <span class="menu-label">Overview</span>
+        <a href="/dashboard/" class="nav-item {% block nav_dashboard %}{% endblock %}">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <span class="menu-label">Supply Chain</span>
+        <a href="/products/" class="nav-item {% block nav_products %}{% endblock %}">
+          <i class="bi bi-box-seam"></i>
+          <span>Products</span>
+        </a>
+        <a href="/warehouses/" class="nav-item {% block nav_warehouses %}{% endblock %}">
+          <i class="bi bi-building"></i>
+          <span>Warehouses</span>
+        </a>
+        <a href="/inventory/" class="nav-item {% block nav_inventory %}{% endblock %}">
+          <i class="bi bi-archive"></i>
+          <span>Inventory</span>
+          {% if low_stock_count %}
+          <span class="nav-badge danger">{{ low_stock_count }}</span>
+          {% endif %}
+        </a>
+        <a href="/suppliers/" class="nav-item {% block nav_suppliers %}{% endblock %}">
+          <i class="bi bi-truck"></i>
+          <span>Suppliers</span>
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <span class="menu-label">Transactions</span>
+        <a href="/purchases/" class="nav-item {% block nav_purchases %}{% endblock %}">
+          <i class="bi bi-cart-plus"></i>
+          <span>Purchases</span>
+          {% if pending_po_count %}
+          <span class="nav-badge warning">{{ pending_po_count }}</span>
+          {% endif %}
+        </a>
+        <a href="/sales/" class="nav-item {% block nav_sales %}{% endblock %}">
+          <i class="bi bi-receipt"></i>
+          <span>Sales</span>
+        </a>
+        <a href="/sales/invoices/" class="nav-item {% block nav_invoices %}{% endblock %}">
+          <i class="bi bi-file-earmark-text"></i>
+          <span>Invoices</span>
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <span class="menu-label">Intelligence</span>
+        <a href="/forecasting/" class="nav-item {% block nav_forecasting %}{% endblock %}">
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>Forecasting</span>
+        </a>
+        <a href="/analytics/" class="nav-item {% block nav_analytics %}{% endblock %}">
+          <i class="bi bi-bar-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+        <a href="/reports/" class="nav-item {% block nav_reports %}{% endblock %}">
+          <i class="bi bi-file-earmark-bar-graph"></i>
+          <span>Reports</span>
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <span class="menu-label">System</span>
+        <a href="/notifications/" class="nav-item {% block nav_notifications %}{% endblock %}">
+          <i class="bi bi-bell"></i>
+          <span>Notifications</span>
+          {% if unread_notification_count %}
+          <span class="nav-badge primary">{{ unread_notification_count }}</span>
+          {% endif %}
+        </a>
+        <a href="/audit/" class="nav-item {% block nav_audit %}{% endblock %}">
+          <i class="bi bi-shield-check"></i>
+          <span>Audit Logs</span>
+        </a>
+        {% if user.is_super_admin %}
+        <a href="/admin/" class="nav-item" target="_blank">
+          <i class="bi bi-gear"></i>
+          <span>Admin Panel</span>
+          <i class="bi bi-arrow-up-right ms-auto" style="font-size:10px;opacity:.5;"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="user-info">
+        {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" alt="{{ user.get_full_name }}" class="user-avatar" />
+        {% else %}
+        <div class="user-avatar-placeholder">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+        {% endif %}
+        <div class="user-details">
+          <span class="user-name">{{ user.get_full_name }}</span>
+          <span class="user-role badge-role-{{ user.role }}">{{ user.get_role_display }}</span>
+        </div>
+        <div class="user-actions">
+          <a href="/accounts/profile/" title="Profile"><i class="bi bi-person-circle"></i></a>
+          <a href="/accounts/logout/" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ====== MAIN CONTENT ====== -->
+  <main class="scm-main" id="mainContent">
+    <!-- Top Navbar -->
+    <header class="scm-topbar">
+      <div class="topbar-left">
+        <button class="topbar-toggle" id="mobileSidebarToggle">
+          <i class="bi bi-list"></i>
+        </button>
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="topbar-breadcrumb">
+          <ol class="breadcrumb mb-0">
+            {% block breadcrumb %}
+            <li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+            {% endblock %}
+          </ol>
+        </nav>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Global Search -->
+        <div class="topbar-search d-none d-md-flex">
+          <i class="bi bi-search"></i>
+          <input type="text" placeholder="Search products, orders, suppliers..." class="topbar-search-input" />
+          <kbd>⌘K</kbd>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="topbar-actions">
+          <!-- Theme Toggle -->
+          <button class="action-btn" id="themeToggle" title="Toggle Theme">
+            <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+          </button>
+
+          <!-- Notifications -->
+          <div class="action-btn position-relative" id="notifBtn">
+            <button class="action-btn" data-bs-toggle="dropdown">
+              <i class="bi bi-bell"></i>
+              {% if unread_notification_count %}
+              <span class="notif-badge">{{ unread_notification_count }}</span>
+              {% endif %}
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notif-dropdown">
+              <div class="notif-header">
+                <span>Notifications</span>
+                <a href="/notifications/mark-all-read/" class="notif-clear">Mark all read</a>
+              </div>
+              <div class="notif-body" id="notifList">
+                {% include 'partials/notification_dropdown.html' %}
+              </div>
+              <div class="notif-footer">
+                <a href="/notifications/">View all notifications</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Menu -->
+          <div class="dropdown">
+            <button class="user-menu-btn" data-bs-toggle="dropdown">
+              {% if user.avatar %}
+              <img src="{{ user.avatar.url }}" alt="" class="user-avatar-sm" />
+              {% else %}
+              <div class="user-initials-sm">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+              {% endif %}
+              <span class="d-none d-md-block">{{ user.first_name }}</span>
+              <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+              <li><span class="dropdown-header-info">
+                <strong>{{ user.get_full_name }}</strong>
+                <small>{{ user.get_role_display }}</small>
+              </span></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/accounts/profile/"><i class="bi bi-person me-2"></i>Profile</a></li>
+              <li><a class="dropdown-item" href="/accounts/change-password/"><i class="bi bi-key me-2"></i>Change Password</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="/accounts/logout/"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <!-- Flash Messages -->
+      {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show scm-alert" role="alert">
+          <i class="bi {% if message.tags == 'success' %}bi-check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}bi-exclamation-triangle{% elif message.tags == 'warning' %}bi-exclamation-circle{% else %}bi-info-circle{% endif %} me-2"></i>
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- ====== OVERLAYS ====== -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Global Search Modal -->
+  <div class="modal fade" id="globalSearchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-top">
+      <div class="modal-content scm-search-modal">
+        <div class="search-modal-header">
+          <i class="bi bi-search"></i>
+          <input type="text" id="globalSearchInput" placeholder="Search products, orders, suppliers, warehouses..." class="search-modal-input" />
+          <kbd>ESC</kbd>
+        </div>
+        <div class="search-modal-body" id="searchResults">
+          <div class="search-hint">
+            <div class="search-hint-item"><kbd>↑↓</kbd> Navigate</div>
+            <div class="search-hint-item"><kbd>↵</kbd> Open</div>
+            <div class="search-hint-item"><kbd>ESC</kbd> Close</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Non-authenticated layout -->
+  <div class="auth-wrapper">
+    {% block auth_content %}{% endblock %}
+  </div>
+  {% endif %}
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Alpine.js for micro-interactions -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+
+  <!-- ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.53.0/dist/apexcharts.min.js"></script>
+
+  <!-- Main App JS -->
+  <script src="/static/js/scm-app.js"></script>
+
+  {% block extra_js %}{% endblock %}
+
+  <!-- WebSocket for real-time notifications -->
+  {% if user.is_authenticated %}
+  <script>
+    const WS_URL = `ws://${window.location.host}/ws/notifications/`;
+    window.SCM = window.SCM || {};
+    window.SCM.userId = "{{ user.id }}";
+    window.SCM.userRole = "{{ user.role }}";
+    window.SCM.currencySymbol = "{{ CURRENCY_SYMBOL }}";
+    window.SCM.csrfToken = "{{ csrf_token }}";
+  </script>
+  {% endif %}
+</body>
+</html>

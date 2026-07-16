@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}500 - Server Error{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:80px 24px;">
+  <div style="font-size:80px;font-weight:800;color:var(--border-color);line-height:1;">500</div>
+  <h2 style="font-size:22px;margin:16px 0 8px;">Server Error</h2>
+  <p style="color:var(--text-muted);margin-bottom:32px;">Something went wrong on our end. Please try again later.</p>
+  <a href="/dashboard/" class="btn-scm-primary"><i class="bi bi-house me-2"></i>Back to Dashboard</a>
+</div>
+{% endblock %}

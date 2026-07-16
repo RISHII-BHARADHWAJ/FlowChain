@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+  <div class="page-header-left">
+    <h1>Executive Dashboard</h1>
+    <p>Welcome back, {{ user.first_name }}. Here's your supply chain overview.</p>
+  </div>
+  <div class="page-header-actions">
+    <button class="btn-scm-secondary" onclick="refreshDashboard()">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+    <button class="btn-scm-primary" onclick="window.location='/reports/'">
+      <i class="bi bi-file-earmark-bar-graph"></i> Generate Report
+    </button>
+  </div>
+</div>
+
+<!-- ─── KPI CARDS ─── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-1">
+    <div class="kpi-card" style="--kpi-accent:#388bfd;--kpi-bg:rgba(56,139,253,.1);">
+      <div class="kpi-icon"><i class="bi bi-box-seam"></i></div>
+      <div class="kpi-value" id="kpi-total-products">{{ kpi.total_products|default:"0" }}</div>
+      <div class="kpi-label">Total Products</div>
+      <div class="kpi-change positive"><i class="bi bi-arrow-up-right"></i> {{ kpi.products_change|default:"0" }}% this month</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-1">
+    <div class="kpi-card" style="--kpi-accent:#3fb950;--kpi-bg:rgba(63,185,80,.1);">
+      <div class="kpi-icon"><i class="bi bi-building"></i></div>
+      <div class="kpi-value">{{ kpi.total_warehouses|default:"0" }}</div>
+      <div class="kpi-label">Warehouses</div>
+      <div class="kpi-change positive"><i class="bi bi-check-circle"></i> All operational</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-2">
+    <div class="kpi-card" style="--kpi-accent:#d29922;--kpi-bg:rgba(210,153,34,.1);">
+      <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+      <div class="kpi-value" id="kpi-low-stock">{{ kpi.low_stock_count|default:"0" }}</div>
+      <div class="kpi-label">Low Stock Items</div>
+      <div class="kpi-change negative"><i class="bi bi-arrow-up-right"></i> Needs attention</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-2">
+    <div class="kpi-card" style="--kpi-accent:#f85149;--kpi-bg:rgba(248,81,73,.1);">
+      <div class="kpi-icon"><i class="bi bi-x-circle"></i></div>
+      <div class="kpi-value">{{ kpi.out_of_stock|default:"0" }}</div>
+      <div class="kpi-label">Out of Stock</div>
+      <div class="kpi-change negative"><i class="bi bi-arrow-up-right"></i> Critical</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-3">
+    <div class="kpi-card" style="--kpi-accent:#a371f7;--kpi-bg:rgba(163,113,247,.1);">
+      <div class="kpi-icon"><i class="bi bi-cart-plus"></i></div>
+      <div class="kpi-value">{{ kpi.pending_purchase_orders|default:"0" }}</div>
+      <div class="kpi-label">Pending POs</div>
+      <div class="kpi-change"><i class="bi bi-clock"></i> Awaiting approval</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-3">
+    <div class="kpi-card" style="--kpi-accent:#39d5d0;--kpi-bg:rgba(57,213,208,.1);">
+      <div class="kpi-icon"><i class="bi bi-truck"></i></div>
+      <div class="kpi-value">{{ kpi.pending_deliveries|default:"0" }}</div>
+      <div class="kpi-label">Pending Deliveries</div>
+      <div class="kpi-change"><i class="bi bi-clock"></i> In transit</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-1">
+    <div class="kpi-card" style="--kpi-accent:#3fb950;--kpi-bg:rgba(63,185,80,.1);">
+      <div class="kpi-icon"><i class="bi bi-currency-rupee"></i></div>
+      <div class="kpi-value" id="kpi-revenue">{{ kpi.monthly_revenue_display|default:"₹0" }}</div>
+      <div class="kpi-label">Monthly Revenue</div>
+      <div class="kpi-change positive"><i class="bi bi-arrow-up-right"></i> {{ kpi.revenue_change|default:"0" }}% vs last month</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-2">
+    <div class="kpi-card" style="--kpi-accent:#388bfd;--kpi-bg:rgba(56,139,253,.1);">
+      <div class="kpi-icon"><i class="bi bi-graph-up"></i></div>
+      <div class="kpi-value">{{ kpi.inventory_value_display|default:"₹0" }}</div>
+      <div class="kpi-label">Inventory Value</div>
+      <div class="kpi-change positive"><i class="bi bi-arrow-up-right"></i> Current valuation</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CHARTS ROW 1 ─── -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="chart-card animate-fade-in">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Monthly Sales & Purchases</div>
+          <div class="chart-subtitle">Revenue vs Procurement spend over last 12 months</div>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn-scm-secondary btn-sm py-1 px-3" onclick="updateSalesChart('monthly')">Monthly</button>
+          <button class="btn-scm-secondary btn-sm py-1 px-3" onclick="updateSalesChart('quarterly')">Quarterly</button>
+        </div>
+      </div>
+      <div id="salesChart"></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="chart-card animate-fade-in">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Category Distribution</div>
+          <div class="chart-subtitle">Products by category</div>
+        </div>
+      </div>
+      <div id="categoryChart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CHARTS ROW 2 ─── -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-4">
+    <div class="chart-card animate-fade-in">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Warehouse Utilization</div>
+          <div class="chart-subtitle">Capacity usage per warehouse</div>
+        </div>
+      </div>
+      <div id="warehouseChart"></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="chart-card animate-fade-in">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Stock Movement</div>
+          <div class="chart-subtitle">In vs Out movements (30 days)</div>
+        </div>
+      </div>
+      <div id="stockMovementChart"></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="chart-card animate-fade-in">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Supplier Performance</div>
+          <div class="chart-subtitle">Top 5 suppliers by score</div>
+        </div>
+      </div>
+      <div id="supplierChart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── BOTTOM TABLES ─── -->
+<div class="row g-3">
+  <div class="col-lg-6 animate-fade-in">
+    <div class="scm-table-wrapper">
+      <div class="chart-header px-3 pt-3">
+        <div class="chart-title">Low Stock Alerts</div>
+        <a href="/inventory/?filter=low_stock" class="text-accent-blue" style="font-size:12px;">View all</a>
+      </div>
+      <table class="scm-table">
+        <thead><tr>
+          <th>Product</th><th>SKU</th><th>Stock</th><th>Reorder Point</th><th>Action</th>
+        </tr></thead>
+        <tbody id="lowStockTable">
+          {% for item in low_stock_items|slice:":8" %}
+          <tr>
+            <td><span class="fw-500">{{ item.product.name|truncatechars:30 }}</span></td>
+            <td><code class="font-mono text-accent-blue" style="font-size:11px;">{{ item.product.sku }}</code></td>
+            <td><span class="text-accent-orange fw-600">{{ item.quantity_on_hand }}</span></td>
+            <td>{{ item.product.reorder_point }}</td>
+            <td>
+              <a href="/purchases/new/?product={{ item.product.id }}" class="btn-scm-primary" style="padding:4px 10px;font-size:11px;">
+                <i class="bi bi-plus"></i> Order
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">
+            <i class="bi bi-check-circle text-accent-green" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+            All stock levels are healthy!
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-lg-6 animate-fade-in">
+    <div class="scm-table-wrapper">
+      <div class="chart-header px-3 pt-3">
+        <div class="chart-title">Recent Purchase Orders</div>
+        <a href="/purchases/" class="text-accent-blue" style="font-size:12px;">View all</a>
+      </div>
+      <table class="scm-table">
+        <thead><tr>
+          <th>PO Number</th><th>Supplier</th><th>Amount</th><th>Status</th><th>Date</th>
+        </tr></thead>
+        <tbody>
+          {% for po in recent_purchase_orders|slice:":8" %}
+          <tr>
+            <td>
+              <a href="/purchases/{{ po.id }}/" class="text-accent-blue fw-500" style="text-decoration:none;">
+                PO-{{ po.po_number }}
+              </a>
+            </td>
+            <td>{{ po.supplier.name|truncatechars:20 }}</td>
+            <td class="fw-600">{{ CURRENCY_SYMBOL }}{{ po.total_amount|floatformat:0 }}</td>
+            <td><span class="badge-status badge-{{ po.status }}">{{ po.get_status_display }}</span></td>
+            <td class="text-muted">{{ po.order_date|date:"d M" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">No recent purchase orders</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const salesData = {{ kpi.monthly_sales_data|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }};
+const purchaseData = {{ kpi.monthly_purchase_data|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }};
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Sales & Purchases chart
+  SCMApp.createLineChart('salesChart', 'Revenue', [
+    { name: 'Sales', data: salesData },
+    { name: 'Purchases', data: purchaseData },
+  ], months, { colors: ['#3fb950', '#388bfd'] });
+
+  // Category donut
+  SCMApp.createDonutChart('categoryChart',
+    {{ kpi.category_labels|default:"['Electronics','Furniture','Raw Materials','Packaging','Others']"|safe }},
+    {{ kpi.category_data|default:"[35,20,25,10,10]"|safe }}
+  );
+
+  // Warehouse utilization
+  SCMApp.createBarChart('warehouseChart',
+    [{ name: 'Utilization %', data: {{ kpi.warehouse_utilization|default:"[65,82,45,90,58]"|safe }} }],
+    {{ kpi.warehouse_names|default:"['WH-01','WH-02','WH-03','WH-04','WH-05']"|safe }},
+    { colors: ['#388bfd'], plotOptions: { bar: { borderRadius: 4 } } }
+  );
+
+  // Stock movement
+  SCMApp.createBarChart('stockMovementChart',
+    [
+      { name: 'Stock In', data: {{ kpi.stock_in_data|default:"[120,95,140,110,130]"|safe }} },
+      { name: 'Stock Out', data: {{ kpi.stock_out_data|default:"[85,110,95,130,100]"|safe }} },
+    ],
+    ['Week 1','Week 2','Week 3','Week 4','Week 5'],
+    { colors: ['#3fb950', '#f85149'] }
+  );
+
+  // Supplier performance
+  SCMApp.createBarChart('supplierChart',
+    [{ name: 'Score', data: {{ kpi.supplier_scores|default:"[95,88,92,79,85]"|safe }} }],
+    {{ kpi.supplier_names|default:"['Alpha','Beta','Gamma','Delta','Epsilon']"|safe }},
+    { colors: ['#a371f7'], plotOptions: { bar: { borderRadius: 4, horizontal: true } } }
+  );
+});
+
+function refreshDashboard() {
+  location.reload();
+}
+</script>
+{% endblock %}
