@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block auth_content %}
+<div class="auth-card animate-fade-in">
+  <div class="auth-logo">
+    <div class="brand-icon-lg"><i class="bi bi-boxes"></i></div>
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-subtitle">Sign in to FlowChain Platform</p>
+  </div>
+
+  {% if form.errors %}
+  <div class="alert" style="background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:#f85149;border-radius:8px;padding:12px 16px;font-size:13px;margin-bottom:20px;">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Invalid email or password. Please try again.
+  </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'accounts:login' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
+
+    <div class="mb-4">
+      <label class="form-label" style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;">
+        Email Address
+      </label>
+      <div style="position:relative;">
+        <i class="bi bi-envelope" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px;"></i>
+        <input type="email" name="username" id="id_username"
+          class="scm-form-control" style="padding-left:40px;"
+          placeholder="you@company.com" required autofocus
+          value="{{ form.username.value|default:'' }}" />
+      </div>
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label" style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;">
+        Password
+      </label>
+      <div style="position:relative;">
+        <i class="bi bi-lock" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px;"></i>
+        <input type="password" name="password" id="id_password"
+          class="scm-form-control" style="padding-left:40px;padding-right:44px;"
+          placeholder="Enter your password" required />
+        <button type="button" id="togglePwd" onclick="togglePassword()"
+          style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;">
+          <i class="bi bi-eye" id="pwdIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4" style="margin-top:8px;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;">
+        <input type="checkbox" name="remember_me" class="form-check-input m-0" />
+        Remember me
+      </label>
+      <a href="/accounts/forgot-password/" style="font-size:13px;color:var(--accent-blue);text-decoration:none;">
+        Forgot password?
+      </a>
+    </div>
+
+    <button type="submit" class="btn-scm-primary w-100 justify-content-center py-3" style="font-size:14px;">
+      <i class="bi bi-box-arrow-in-right"></i> Sign In
+    </button>
+  </form>
+
+  <div style="text-align:center;margin-top:24px;font-size:12px;color:var(--text-muted);">
+    <i class="bi bi-shield-lock me-1"></i>
+    Protected by enterprise-grade security
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+  const input = document.getElementById('id_password');
+  const icon = document.getElementById('pwdIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+</script>
+{% endblock %}
