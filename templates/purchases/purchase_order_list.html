@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Purchase Orders{% endblock %}
+{% block nav_purchases %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+<li class="breadcrumb-item active">Purchase Orders</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0" style="font-weight:700;">Purchase Orders</h1>
+    <p class="text-muted mb-0">Monitor procurement lifecycles, requisitions, and vendor items.</p>
+  </div>
+  <button class="btn-scm-primary"><i class="bi bi-plus-lg me-2"></i> Create PO</button>
+</div>
+
+<!-- Filters -->
+<div class="scm-card p-4 mb-4">
+  <form method="get" class="row g-3">
+    <div class="col-md-4">
+      <div class="position-relative">
+        <i class="bi bi-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);"></i>
+        <input type="text" name="search" class="scm-form-control" style="padding-left:40px;" 
+               placeholder="Search PO Number..." value="{{ request.GET.search|default:'' }}">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <select name="supplier" class="scm-form-control">
+        <option value="">All Suppliers</option>
+        {% for s in suppliers %}
+        <option value="{{ s.id }}" {% if request.GET.supplier == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="status" class="scm-form-control">
+        <option value="">All Statuses</option>
+        <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Draft</option>
+        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending Approval</option>
+        <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+        <option value="sent" {% if request.GET.status == 'sent' %}selected{% endif %}>Sent to Vendor</option>
+        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn-scm-secondary w-100">Filter</button>
+    </div>
+  </form>
+</div>
+
+<!-- PO Table -->
+<div class="scm-card">
+  <div class="table-responsive">
+    <table class="table scm-table align-middle">
+      <thead>
+        <tr>
+          <th>PO Number</th>
+          <th>Supplier</th>
+          <th>Warehouse</th>
+          <th>Order Date</th>
+          <th>Delivery Date</th>
+          <th>Total Amount</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td><code style="color:var(--accent-blue);">{{ o.po_number }}</code></td>
+          <td>{{ o.supplier.name }}</td>
+          <td>{{ o.warehouse.name }}</td>
+          <td>{{ o.order_date }}</td>
+          <td>{{ o.delivery_due_date|default:"-" }}</td>
+          <td>₹{{ o.total_amount|floatformat:2 }}</td>
+          <td>
+            {% if o.status == 'completed' %}
+            <span class="badge" style="background:rgba(63,185,80,.1);color:var(--accent-green);">Completed</span>
+            {% elif o.status == 'pending' %}
+            <span class="badge" style="background:rgba(210,153,34,.1);color:var(--accent-orange);">Pending</span>
+            {% else %}
+            <span class="badge bg-secondary">{{ o.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-link text-decoration-none" style="color:var(--accent-blue);">
+              View
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center py-5">
+            <i class="bi bi-cart-plus text-muted mb-3" style="font-size:36px;opacity:.3;"></i>
+            <p class="text-muted">No purchase orders found.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
