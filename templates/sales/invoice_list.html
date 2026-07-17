@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Invoices{% endblock %}
+{% block nav_invoices %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+<li class="breadcrumb-item"><a href="/sales/">Sales</a></li>
+<li class="breadcrumb-item active">Invoices</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0" style="font-weight:700;">Invoices</h1>
+    <p class="text-muted mb-0">Manage and track billing invoices and payment collection status.</p>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="scm-card p-4 mb-4">
+  <form method="get" class="row g-3">
+    <div class="col-md-6">
+      <div class="position-relative">
+        <i class="bi bi-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);"></i>
+        <input type="text" name="search" class="scm-form-control" style="padding-left:40px;" 
+               placeholder="Search by invoice number or SO number..." value="{{ request.GET.search|default:'' }}">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select name="status" class="scm-form-control">
+        <option value="">All Statuses</option>
+        <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Draft</option>
+        <option value="sent" {% if request.GET.status == 'sent' %}selected{% endif %}>Sent</option>
+        <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Paid</option>
+        <option value="partially_paid" {% if request.GET.status == 'partially_paid' %}selected{% endif %}>Partially Paid</option>
+        <option value="overdue" {% if request.GET.status == 'overdue' %}selected{% endif %}>Overdue</option>
+        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn-scm-secondary w-100">Filter</button>
+    </div>
+  </form>
+</div>
+
+<!-- Invoice Table -->
+<div class="scm-card">
+  <div class="table-responsive">
+    <table class="table scm-table align-middle">
+      <thead>
+        <tr>
+          <th>Invoice Number</th>
+          <th>Sales Order</th>
+          <th>Customer</th>
+          <th>Issue Date</th>
+          <th>Due Date</th>
+          <th>Total Amount</th>
+          <th>Due Amount</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td><code style="color:var(--accent-blue);">{{ inv.invoice_number }}</code></td>
+          <td><code>{{ inv.sales_order.order_number }}</code></td>
+          <td>{{ inv.sales_order.customer.name }}</td>
+          <td>{{ inv.issue_date }}</td>
+          <td>{{ inv.due_date }}</td>
+          <td>₹{{ inv.total_amount|floatformat:2 }}</td>
+          <td>₹{{ inv.due_amount|floatformat:2 }}</td>
+          <td>
+            {% if inv.status == 'paid' %}
+            <span class="badge" style="background:rgba(63,185,80,.1);color:var(--accent-green);">Paid</span>
+            {% elif inv.status == 'overdue' %}
+            <span class="badge" style="background:rgba(248,81,73,.1);color:var(--accent-red);">Overdue</span>
+            {% elif inv.status == 'sent' %}
+            <span class="badge" style="background:rgba(30,144,255,.1);color:var(--accent-blue);">Sent</span>
+            {% else %}
+            <span class="badge bg-secondary">{{ inv.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-link text-decoration-none" style="color:var(--accent-blue);">View PDF</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center py-5">
+            <i class="bi bi-file-earmark-text text-muted mb-3" style="font-size:36px;opacity:.3;"></i>
+            <p class="text-muted">No invoices found.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
