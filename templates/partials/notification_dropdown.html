@@ -1,0 +1,45 @@
+{% for notif in notifications|slice:":6" %}
+<a href="{{ notif.action_url|default:'#' }}" class="notif-item {% if not notif.is_read %}unread{% endif %}"
+   onclick="markNotifRead('{{ notif.id }}', event)">
+  <div class="notif-icon {{ notif.priority }}">
+    <i class="bi {% if notif.notification_type == 'low_stock' %}bi-exclamation-triangle
+      {% elif notif.notification_type == 'expiry' %}bi-clock-history
+      {% elif notif.notification_type == 'po_approval' %}bi-cart-check
+      {% elif notif.notification_type == 'transfer_request' %}bi-arrow-left-right
+      {% elif notif.notification_type == 'payment_due' %}bi-credit-card
+      {% else %}bi-bell{% endif %}"></i>
+  </div>
+  <div class="notif-content">
+    <div class="notif-title">{{ notif.title|truncatechars:45 }}</div>
+    <div class="notif-msg">{{ notif.message|truncatechars:70 }}</div>
+    <div class="notif-time">{{ notif.created_at|timesince }} ago</div>
+  </div>
+  {% if not notif.is_read %}<div class="notif-dot"></div>{% endif %}
+</a>
+{% empty %}
+<div class="text-center py-4 text-muted" style="font-size:13px;">
+  <i class="bi bi-bell-slash" style="font-size:24px;display:block;margin-bottom:8px;opacity:.3;"></i>
+  No new notifications
+</div>
+{% endfor %}
+
+<style>
+.notif-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:12px 16px; text-decoration:none; color:var(--text-primary);
+  border-bottom:1px solid var(--border-color); transition:var(--transition);
+  position:relative;
+}
+.notif-item:last-child { border-bottom:none; }
+.notif-item:hover { background:var(--bg-hover); }
+.notif-item.unread { background:rgba(56,139,253,.04); }
+.notif-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.notif-icon.high { background:rgba(248,81,73,.1); color:var(--accent-red); }
+.notif-icon.medium { background:rgba(56,139,253,.1); color:var(--accent-blue); }
+.notif-icon.low { background:rgba(63,185,80,.1); color:var(--accent-green); }
+.notif-content { flex:1; min-width:0; }
+.notif-title { font-size:12.5px; font-weight:600; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.notif-msg { font-size:11.5px; color:var(--text-muted); margin-bottom:4px; }
+.notif-time { font-size:10px; color:var(--text-muted); }
+.notif-dot { width:6px; height:6px; border-radius:50%; background:var(--accent-blue); flex-shrink:0; margin-top:6px; }
+</style>

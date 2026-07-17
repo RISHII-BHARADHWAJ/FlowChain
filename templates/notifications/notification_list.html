@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block nav_notifications %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+<li class="breadcrumb-item active">Notifications</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0" style="font-weight:700;">Notifications</h1>
+    <p class="text-muted mb-0">System updates, security logins, and critical low stock alerts.</p>
+  </div>
+  <a href="{% url 'notifications:mark_all_read' %}" class="btn-scm-secondary">
+    <i class="bi bi-check-all me-2"></i> Mark All as Read
+  </a>
+</div>
+
+<div class="scm-card p-4">
+  <div class="list-group list-group-flush">
+    {% for n in notifications %}
+    <div class="list-group-item bg-transparent py-3 px-0 d-flex justify-content-between align-items-start {% if not n.is_read %}fw-semibold{% endif %}" 
+         style="border-bottom:1px solid var(--border-color);">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          {% if n.level == 'info' %}
+          <i class="bi bi-info-circle-fill text-info"></i>
+          {% elif n.level == 'warning' %}
+          <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+          {% elif n.level == 'error' %}
+          <i class="bi bi-x-circle-fill text-danger"></i>
+          {% else %}
+          <i class="bi bi-bell-fill text-muted"></i>
+          {% endif %}
+          <span style="font-size:14px;color:var(--text-primary);">{{ n.title }}</span>
+        </div>
+        <p class="text-muted small mb-0">{{ n.message }}</p>
+        <span class="text-muted" style="font-size:11px;">{{ n.created_at|timesince }} ago</span>
+      </div>
+      {% if not n.is_read %}
+      <span class="badge rounded-pill bg-primary" style="font-size:9px;">New</span>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+      <i class="bi bi-bell text-muted mb-3" style="font-size:36px;opacity:.3;"></i>
+      <p class="text-muted mb-0">No notifications yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
