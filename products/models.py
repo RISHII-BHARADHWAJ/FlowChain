@@ -98,22 +98,22 @@ class Product(BaseModel):
     cost_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     selling_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     mrp = models.DecimalField(max_digits=15, decimal_places=2, default=0, help_text='Maximum Retail Price')
-    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True)
 
     # Stock levels
-    minimum_stock = models.PositiveIntegerField(default=10)
-    maximum_stock = models.PositiveIntegerField(default=1000)
-    reorder_point = models.PositiveIntegerField(default=20)
-    reorder_quantity = models.PositiveIntegerField(default=50)
-    safety_stock = models.PositiveIntegerField(default=5)
+    minimum_stock = models.PositiveIntegerField(default=10, blank=True)
+    maximum_stock = models.PositiveIntegerField(default=1000, blank=True)
+    reorder_point = models.PositiveIntegerField(default=20, blank=True)
+    reorder_quantity = models.PositiveIntegerField(default=50, blank=True)
+    safety_stock = models.PositiveIntegerField(default=5, blank=True)
 
     # Physical attributes
     weight = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
-    weight_unit = models.CharField(max_length=10, default='kg')
+    weight_unit = models.CharField(max_length=10, default='kg', blank=True)
     length = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    dimension_unit = models.CharField(max_length=10, default='cm')
+    dimension_unit = models.CharField(max_length=10, default='cm', blank=True)
 
     # Tracking
     is_batch_tracked = models.BooleanField(default=False)

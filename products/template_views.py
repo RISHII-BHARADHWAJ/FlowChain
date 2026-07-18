@@ -40,14 +40,24 @@ def product_list(request):
 
 @login_required
 def product_detail(request, pk):
+    from products.models import Product
     product = get_object_or_404(Product, pk=pk, deleted_at__isnull=True)
     from inventory.models import StockLevel, StockMovement
     stock_levels = StockLevel.objects.filter(product=product).select_related('warehouse')
     recent_movements = StockMovement.objects.filter(product=product).order_by('-created_at')[:10]
+    tracking_flags = [
+        ('Batch Tracked', product.is_batch_tracked),
+        ('Lot Tracked', product.is_lot_tracked),
+        ('Expiry Tracked', product.is_expiry_tracked),
+        ('Serialized', product.is_serialized),
+        ('Purchasable', product.is_purchasable),
+        ('Sellable', product.is_sellable),
+    ]
     return render(request, 'products/product_detail.html', {
         'product': product,
         'stock_levels': stock_levels,
         'recent_movements': recent_movements,
+        'tracking_flags': tracking_flags,
     })
 
 
