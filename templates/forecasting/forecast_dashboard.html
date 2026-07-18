@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Demand Forecasting{% endblock %}
+{% block nav_forecasting %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+<li class="breadcrumb-item active">Forecasting</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0" style="font-weight:700;">Demand Forecasting</h1>
+    <p class="text-muted mb-0">ML-driven stock level predictions and safety threshold alerts.</p>
+  </div>
+  <button class="btn-scm-primary"><i class="bi bi-cpu me-2"></i> Retrain Model</button>
+</div>
+
+<!-- Forecasting Grid -->
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-3" style="font-weight:600;">System Model Status</h3>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted">Algorithm</span>
+        <span class="badge bg-secondary font-monospace">LinearRegression / Random Forest</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted">Accuracy (R² Score)</span>
+        <span class="text-success font-weight-600">89.4%</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="text-muted">Last Updated</span>
+        <span>Yesterday at 11:30 PM</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-3" style="font-weight:600;">Safety Stock Recommendation</h3>
+      <p class="text-muted">System calculated that 12 products require an increase in safety stock threshold due to upcoming holiday demand spikes.</p>
+      <button class="btn btn-sm btn-outline-primary" style="color:var(--accent-blue);">Review Recommendations</button>
+    </div>
+  </div>
+</div>
+
+<!-- Forecast Predictions -->
+<div class="scm-card">
+  <div class="card-header-scm p-4" style="border-bottom:1px solid var(--border-color);">
+    <h3 class="h5 mb-0" style="font-weight:600;">Product Demand Forecasts</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table scm-table align-middle">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Forecast Date</th>
+          <th>Predicted Demand Quantity</th>
+          <th>Confidence Interval</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in forecasts %}
+        <tr>
+          <td><strong>{{ f.product.name }}</strong></td>
+          <td>{{ f.forecast_date }}</td>
+          <td>{{ f.predicted_quantity }} units</td>
+          <td>{{ f.confidence_interval|default:"85%" }}</td>
+          <td>
+            <span class="badge" style="background:rgba(63,185,80,.1);color:var(--accent-green);">Optimal</span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-5">
+            <i class="bi bi-graph-up text-muted mb-3" style="font-size:36px;opacity:.3;"></i>
+            <p class="text-muted">No forecasting run logs found yet. Click Retrain Model above to launch.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
