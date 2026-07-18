@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Reports Manager{% endblock %}
+{% block nav_reports %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+<li class="breadcrumb-item active">Reports</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0" style="font-weight:700;">Reports Manager</h1>
+    <p class="text-muted mb-0">Generate inventory statements, sales summaries, and tax reports.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Report Card 1 -->
+  <div class="col-md-4">
+    <div class="scm-card p-4 h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="brand-icon mb-3" style="width:40px;height:40px;border-radius:8px;background:rgba(59,130,246,.1);color:var(--accent-blue);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-archive"></i>
+        </div>
+        <h3 class="h5 mb-2" style="font-weight:600;">Inventory Valuation Report</h3>
+        <p class="text-muted small">Total stock asset valuation by categories, including holding rates and average costs.</p>
+      </div>
+      <button class="btn-scm-secondary w-100 mt-4"><i class="bi bi-file-pdf me-2"></i> Generate PDF</button>
+    </div>
+  </div>
+
+  <!-- Report Card 2 -->
+  <div class="col-md-4">
+    <div class="scm-card p-4 h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="brand-icon mb-3" style="width:40px;height:40px;border-radius:8px;background:rgba(16,185,129,.1);color:var(--accent-green);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-graph-up"></i>
+        </div>
+        <h3 class="h5 mb-2" style="font-weight:600;">Sales Performance Report</h3>
+        <p class="text-muted small">Detailed sales order revenue summaries, customer cohorts, and tax metrics.</p>
+      </div>
+      <button class="btn-scm-secondary w-100 mt-4"><i class="bi bi-file-pdf me-2"></i> Generate PDF</button>
+    </div>
+  </div>
+
+  <!-- Report Card 3 -->
+  <div class="col-md-4">
+    <div class="scm-card p-4 h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="brand-icon mb-3" style="width:40px;height:40px;border-radius:8px;background:rgba(245,158,11,.1);color:var(--accent-orange);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-truck"></i>
+        </div>
+        <h3 class="h5 mb-2" style="font-weight:600;">Supplier Performance Analysis</h3>
+        <p class="text-muted small">Supplier delivery cycles, product quality check records, and cost differences.</p>
+      </div>
+      <button class="btn-scm-secondary w-100 mt-4"><i class="bi bi-file-pdf me-2"></i> Generate PDF</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
