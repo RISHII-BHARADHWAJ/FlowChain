@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Analytics Hub{% endblock %}
+{% block nav_analytics %}active{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard/"><i class="bi bi-house"></i></a></li>
+<li class="breadcrumb-item active">Analytics</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0" style="font-weight:700;">Analytics Hub</h1>
+    <p class="text-muted mb-0">ABC analysis, warehouse performance, and turnover metrics.</p>
+  </div>
+  <button class="btn-scm-primary" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-2"></i> Refresh Data</button>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+  <div class="col-md-8">
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-4" style="font-weight:600;">Inventory Cost Structure</h3>
+      <div id="analyticsCostChart"></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-4" style="font-weight:600;">ABC Inventory Classification</h3>
+      <div id="abcDonutChart"></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-3" style="font-weight:600;">Key Ratios</h3>
+      <div class="table-responsive">
+        <table class="table scm-table align-middle">
+          <tbody>
+            <tr>
+              <td><strong>Inventory Turnover Ratio (ITR)</strong></td>
+              <td class="text-end text-success font-weight-600">4.8x</td>
+            </tr>
+            <tr>
+              <td><strong>Days Sales of Inventory (DSI)</strong></td>
+              <td class="text-end font-weight-600">76 Days</td>
+            </tr>
+            <tr>
+              <td><strong>Stockout Rate</strong></td>
+              <td class="text-end text-danger font-weight-600">1.2%</td>
+            </tr>
+            <tr>
+              <td><strong>Order Fill Rate</strong></td>
+              <td class="text-end text-success font-weight-600">98.5%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="scm-card p-4">
+      <h3 class="h5 mb-3" style="font-weight:600;">Warehouse Performance Indexes</h3>
+      <div class="table-responsive">
+        <table class="table scm-table align-middle">
+          <tbody>
+            <tr>
+              <td><strong>Receiving Efficiency</strong></td>
+              <td class="text-end font-weight-600">94.2%</td>
+            </tr>
+            <tr>
+              <td><strong>Order Pick Accuracy</strong></td>
+              <td class="text-end text-success font-weight-600">99.1%</td>
+            </tr>
+            <tr>
+              <td><strong>Average Fulfillment Cycle Time</strong></td>
+              <td class="text-end font-weight-600">1.4 Days</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // 1. ABC Donut Chart
+    const abcOptions = {
+      series: [80, 15, 5],
+      chart: { type: 'donut', height: 260 },
+      labels: ['Class A (High Value)', 'Class B (Medium Value)', 'Class C (Low Value)'],
+      colors: ['#3b82f6', '#10b981', '#f59e0b'],
+      legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
+      dataLabels: { enabled: false },
+      stroke: { show: false }
+    };
+    new ApexCharts(document.querySelector("#abcDonutChart"), abcOptions).render();
+
+    // 2. Cost Chart
+    const costOptions = {
+      series: [{
+        name: 'Procurement Cost',
+        data: [44, 55, 41, 67, 22, 43, 21, 49, 32, 28, 55, 62]
+      }, {
+        name: 'Holding Cost',
+        data: [13, 23, 20, 8, 13, 27, 33, 12, 11, 24, 18, 20]
+      }],
+      chart: { type: 'bar', height: 260, stacked: true, toolbar: { show: false } },
+      colors: ['#3b82f6', '#ef4444'],
+      xaxis: {
+        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        labels: { style: { colors: '#94a3b8' } }
+      },
+      yaxis: { labels: { style: { colors: '#94a3b8' } } },
+      legend: { position: 'top', horizontalAlign: 'left', labels: { colors: '#94a3b8' } },
+      grid: { borderColor: '#1e293b' }
+    };
+    new ApexCharts(document.querySelector("#analyticsCostChart"), costOptions).render();
+  });
+</script>
+{% endblock %}
